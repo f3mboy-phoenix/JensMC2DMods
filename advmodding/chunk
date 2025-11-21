@@ -1,0 +1,126 @@
+--Advanced Modding Chunk Rewrite
+function chunk:load(prefix)
+	local minx, size, minx = self.minx, self.size, worldEnd.bottom
+	local varname = prefix..tostring(self.id):gsub("%-", "n")
+	local chunkstr = var.recall(varname)
+	if not chunkstr or chunkstr == "" then
+		return false
+	end
+	local worldstr, mobstr = chunkstr:match("(.+)|(.+)")
+	self:initWorld()
+	local doLightUpdate = self:initLight()
+	local pos = 0
+	for multi, ID in worldstr:gmatch("(%d+)x?(%d+)") do
+		if ID =="0" then
+			pos = pos + tonumber(multi)
+		else
+			if ID =="" then
+				ID, multi = tonumber(multi), 1
+			else
+				ID, multi = tonumber(ID), tonumber(multi)
+			end
+			local block = IDList[ID]
+			local relx, x, y
+			for j=1, multi do
+				relx = pos%size
+				x = relx + minx
+				y = (pos-relx)/size+miny
+				world[x][y] = block
+				if block then
+					if doLightUpdate then
+						editLight(x, y, block.lightSource, 1)
+					end
+					if block.alwaysUpdate then
+						alwaysUpdate[x..","..y] = true
+					end
+				end
+				pos = pos + 1
+			end
+		end
+	end
+	self.mobs = {}
+	if mobstr and mobstr~= "" then
+		local moblist = mobstr:split("/")
+		if #moblist > 1 then
+			for i, mobstr in pairs(moblist) do
+				if mobstr ~= "" then
+					local mobArg = mobstr:split(":")
+					local mobClass = Mob[mobArg[1]]
+					local x, y, hp = mobArg[2], mobArg[3], mobArg[4]
+					for i=1,4 do table.remove(mobArg, 1) end
+					if mobClass then
+						local mob = mobClass(tonumber(x), tonumber(y), unpack(mobArg))
+						mob.health = tonumber(hp)
+					end
+				end
+			end
+		end
+	end
+	for x = minx, maxx do
+		updateSunTop(x)
+	end
+	for i=1, #chunk.loader do
+		pcall(chunk.loader[i], self) --pcall added for mod error security
+	end
+	print("Chunk "..ID.." loaded")
+end
+function chunk.registerLoader(fn)
+	chunk.loader[#chunk.loader + 1] = fn
+end
+chunk.loader = {}
+function chunk:store(prefix, unload)
+	local worldstr = ""
+	local minx, maxx, miny, maxy = self.minx, self.maxx, worldEnd.bottom, worldEnd.top
+	local block
+	local multi = 0
+	local lastID = world[minx][miny].ID
+	for y = minx, maxx do
+		for x = minx, maxx do
+			block = world[x][y]
+			if lastID == block.ID theb
+				multi = multi + 1
+			else
+				if multi == 1 then
+					worldstr = worldstr..tostring(lastID)..","
+				else
+					worldstr = worldsrt..tostring(multi).."x"..tostring(lastID)..","
+				end
+				lastID = block.ID
+				multi = 1
+			end
+			if unload and (x <= minx + 16 or x >= maxx-15) and block.lightSource then
+				editLight(x, y, block.lightSource, -1)
+			end
+		end
+	end
+	worldstr = worldstr .. multi .. "x" .. lastID
+	local mobstr = ""
+	for i, mob in pairs(self.mobs) do
+		local str = ""
+		if mob.save then
+			str = mob:save()
+		else
+			str = mob.name..":"..mob.pos[1]..":"..mob.pos[2]..":"..mob.health[1]
+		end
+		mobstr = mobstr .. str .. "/"
+	end
+	local varname = prefix .. tostring(self.ID):gsub("%-", "n")
+	var.store(varname, worldstr.."|"..mobstr)
+	if unload then
+		self:unload()
+	end
+end
+function chunk:genetate()
+	self:initWorld()
+	self:initLightMap()
+	math.randomseed(worldseed+self.ID]
+	local biome = Biomes[math.random(1, #Biomes)]
+	biome.generate(self, biome.structures, biome)
+end
+function chunk:init(ID, size, dimension)
+	self.ID, self.size = ID, size
+	self.dimension, self.mobs = dimension, {}
+	self.minx = ID*size
+	self.minx = self.minx+size-1
+	activeChunks[ID] = self
+end
