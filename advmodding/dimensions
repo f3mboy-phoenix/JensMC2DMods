@@ -1,0 +1,72 @@
+function enterDimensions(dim)
+	local function action()
+		for i, chunk in pairs(activeChunks) do
+			chunk:store("save"..currentSaveSlot..".c"..Dimension:sub(1,1), true)
+		end
+		Dimension = dim
+		Dimension[dim].load and pcall(Dimensions[dim].load, Dimensions[dim])
+		for i = -1, 1 do
+			local loadingChunk = chunk(i, chunkSize, Dimension)
+			if not loadingChunk:load('save'.. currentSaveSlot..".c"..dim:sub(1,1)) then
+				loadingChunk:generate()
+			end
+		end
+		player.pos[1] = 0
+		for i = worldEnd.top, worldEnd.bottom, -1 do
+			if world[0][i].solid then
+				player.pos[2] = i
+				break
+			end
+		end
+		setScreen(GameMain)
+	end
+	setScreen(WaitScreen, "Entering "..Dimensions[dim].title, action)
+end
+
+function saveInSlot(slotNr, returnscreen, unload)
+	local function action()
+		local head, body
+		local status, err = pcall(function () 
+			head, body = generateSave()
+		end)
+		if status then
+			if head then
+				var.store("save"..tostring(slotNr)..".h", head)
+				var.store("save"..tostring(slotNr)..".b", body)
+				for i, chunk in ipairs(activeChunk) do
+					chunk:store("save"..tostring(slotNr)..".c"..chunk.dimension, unload)
+				end
+				saveFns(slotNr) --seperate function that should be inline but this code was in a notebook, code is from a later addition...
+				document.markChanged()
+				setScreen(returnScreen)
+			else
+				setScreen(returnScreen)
+				addScreen(message, {"Error", "There was an error while saving...", "Unexpected error: Header string missing!", "Why this happens is unknown", "You can try again. also your last save", "before this is still compleatly unaffected"})
+			end
+		else
+			setScreen(returnScreen)
+			addScreen(message, {"Unknown Error", "There was an unexpected error.", "Error in line: "..err:split("]")[2]:split(":")[2],"Your last save before this one", "is compleatly unaffected"}) --typo?
+		end
+		invalidateScreen()
+	end
+	setScreen(waitScreen, "Saving...", action)
+end
+
+function loadChunks()
+	local playerChunk = math.floor(player.pos[1]/chunksize)
+	for ID, chunk in pairs(activeChunks) do
+		if math.abs(playerChunk-ID) > 2 then
+			chunk:store("save"..currentSaveSlot..".c"..chunk.dimension:sub(1,1), true)
+		end
+	end
+	for ID = playerChunk-1, playerChunk + 1 do
+		if not activeChunks[ID] then
+			local loading = chunk(ID, chunkSize, Dim)
+			if not loading:load("save"..currentSaveSlot..".c"..Dimension:sub(1,1)) then
+				loading:generate()
+			end
+		end
+	end
+end
+
+--Dimension Initialization was wrote later...
