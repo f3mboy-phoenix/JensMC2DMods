@@ -1,0 +1,25 @@
+worldEnd.top = 316
+worldEnd.bottom = -64
+Biomes = {
+	overworld = {},
+	nether = {},
+	end = {},
+	outer = {},
+}
+
+--normal default world, fixed adding height and deepslate, and other improvements (I think)
+Biomes.overworld[1] = {
+	genetate = function(self, structures)
+		local floor, max, min, rnd, abs, ceil, editLight = math.floor, math.max, math.min, math.random, math.abs, math.ceil, editLight
+		local minx, maxx = self.minx, self.maxx
+		local gendir = sign(maxx)
+		local worldHeight = {}
+		local v, a
+		if self.ID==0 then
+			worldHeigth.right.v = 0
+			worldHeigth.right.a = rnd(-20, 20)
+			worldHeight.right.height = rnd(55, 90) -- no clue how close this is... went off of sea level to guess
+			worldHeight.left.v = 0
+			worldHeight.left.a = -worldHeight.right.a
+			worldHeight.left.height = world.right.height
+		end
