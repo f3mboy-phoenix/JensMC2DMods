@@ -23,3 +23,179 @@ Biomes.overworld[1] = {
 			worldHeight.left.a = -worldHeight.right.a
 			worldHeight.left.height = world.right.height
 		end
+		local startx, endx, step
+		if gendir > 0 then
+			startx, endx, step = minx, maxx, 1
+			v, a = worldEnd.right.v, worldEnd.right.a
+			worldHeight[minx-1] = worldEnd.right.height
+		else
+			startx, endx, step = maxx, minx, -1
+			v, a = worldEnd.left.v, worldEnd.left.a
+			worldHeight[maxx+1] = worldEnd.left.height
+		end
+		for x = startx, endx, step do
+			worldHeight[x] = worldHeight[x+gendir]+v/100
+			local surface = floor(worldHeight[x]+.5)
+			for y = -64, max(surface, 60) do
+				if y == surface then
+					if y <= 61 then
+						world[x][y] = Block_sand
+					else
+						world[x][y] = Block_grass
+					end
+				elseif y < 61 and y > surface then
+					world[x][y] = Block_water_source
+				elseif y < surface and y > surface-4 then
+					if surface < 1 and y > surface-2 then
+						world[x][y] = Block_sand
+					else
+						world[x][y] = Block_dirt
+					end
+				else
+					if y < 5 and y > 0 then
+						if rnd(0, 1) == 0 then
+							world[x][y] = Block_deepslate
+						else
+							world[x][y] = Block_stone
+						end
+					elseif y < 0 then
+						world[x][y] = Block_deepslate
+					else
+						world[x][y] = Block_stone
+					end
+				end
+			end
+			if x%5 == 0 or (worldHeight[x-gendir] > 59 and worldHeight[x] <= 59) then
+				if worldHeight[x] >= 70 then
+					if (v > 0 or a > 0) or worldHeight[x] > 80 then
+						v, a = min(v, 100), -20
+					elseif v > 100 then
+						a = rnd(-20, -15)
+					elseif v > 0 then
+						a = rnd(-20, -5)
+					else
+						a = rnd(-5, 5)
+					end
+				elseif worldHeight[x] > 64 then
+					v = max(v/2, 100)
+					if a > 5 or worldHeight[x] > 59 then
+						a = rnd(-5, 20)
+					else
+						a = rnd(5, 20)
+					end
+				elseif worldHeight[x] < 69 then
+					a = rnd(-10, 20) * sign(-v) - 1
+				end
+			end
+			v = min(max(v+a, -300), 300)
+		end
+		if gendir > 0 then
+			worldEnd.right.v, worldEnd.right.a = v, a
+			worldEnd.right.height = worldHeight[maxx]
+		else
+			worldEnd.left.v, worldEnd.left.a = v, a
+			worldEnd.left.height = worldHeight[minx]
+		end
+		for x = minx, maxx, 5 do
+			for y = -64, worldEnd.top, 3 do
+				GenerateOres("overworld", x, y)
+			end
+		end
+		for i = 1, math.ceil(self.size/15)
+			local dx = rnd(2, self.size-10)
+			local x = (gendir > 0 and minx or maxx) + dx * gendir
+			local y = rnd(-64, worldHeight[x] - 15)
+			local L = (self.size + dx) - rnd(0, 10)
+			gencave(x, y, 2, L, x > 0 and Math.PI or 0)
+		end
+		for x = minx + 1, maxx - 1 do
+			for y = -64, worldEnd.top do
+				if world[x][y] == Block_water_source then
+					for i = 2, 4 do
+						local wx, wy = getNeighbor(i, x, y)
+						if world[wx][wy] == Block_air then
+							world[wx][wy] = Block_dirt
+						end
+					end
+				elseif y < -60 and y > -64 and world[x][y] == Block_air then
+					world[x][y] = Block_lava_source
+					editLight(x, y, Block_lava_source.light_source, 1)
+				elseif world[x][y] == Block_grass and x > minx+2 and x < maxx-2 then
+					local r = rnd(8)
+					if r == 1 then
+						growTree(x, y+1, "oak")
+					elseif r == 2 then
+						world[x][y+1] = RandomFlower()
+					elseif r == 3 then
+						spawnMob("animal", x, y, true)
+					end
+				end
+			end
+		end
+		for i = 0, floor(self.size/25) - 1 do
+			local x = rnd(minx + i * 25 +5, minx + (i + 1) * 25 - 5)
+			local y = rnd(0, worldHeight[x] - 10)
+			local r = rnd(1, 10)
+			if r == 1 then
+				createStronghold(x, y)
+			else
+				createDungeon(x, y)
+			end
+		end
+		for x = minx, maxx do
+			world[x][worldEnd.bottom] = Block_bedrock
+			world[x][worldEnd.bottom + 1] = Block_bedrock
+			updateSunTop(x)
+		end
+		for i = 1, #structures do
+			structures[i](self, worldHeight)
+		end
+	end,
+	name = "plains",
+	structures = {}
+}
+
+function Biome(dimension, name, fun, structures)
+	local dim = Biomes[dimension]
+	dim[#dim + 1] = {}
+	local biome = dim[#dim]
+	name = name or tostring(#dim)
+	if type(fun) == "function" then
+		biome.generate = function(...) --error handler is untested and may be broken, wasn't in original notebook
+			_, err = pcall(fun, ...)
+			if err then
+				addScreen(message, {"Error",
+					"There was an error generating biome ahead",
+					"Biome name: ".. name
+				})
+				print(err)
+				var.store("errmessage", err)
+			end
+		end
+	else -- fallback error handle
+		biome.generate = Biomes.overworld[1].generate
+	end
+	biome.structures = {}
+	biome.name = name
+end
+
+function Structure(dimension, biome, fun)
+	if Biomes[dimension] then
+		local s = {}
+		if biome == "all" then
+			for i = 1, #Biomes[dimension] do
+				table.insert(Biomes[dimension][i].structures, fun)
+			end
+		elseif type(biome) == "table" then
+			for i = 1, #Biomes[dimension] do
+				for j = 1, #biome do
+					if Biomes[dimension][i].name == biome[j] then
+						table.remove(biome, j)
+						table.insert(Biomes[dimension][i].structures, fun)
+						break
+					end
+				end
+			end
+		end
+	end
+end
