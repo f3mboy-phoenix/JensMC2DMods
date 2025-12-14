@@ -1,0 +1,225 @@
+Recipe = class()
+function Recipe:init(ingredients, product, requirescraftingtable)
+	self.ingredients = ingredients
+	self.product = product
+	self.requiresCraftingTable = requirescraftingtable
+	table.insert(recipes, self)
+end
+
+function Recipe:check(slots)
+	for i = 1, #self.ingredients do
+		for j = 1, 3 do
+			local item = ConvertItem(slot[i][j]).ID
+			local item2 = self.ingtedients[i][j]
+			if item ~= item2 then
+				return false
+			end
+		end
+	end
+	return self
+end
+
+function Recipe:craft(slot)
+	for i = 1, #slot do
+		for j = 1, 3 do 
+			if slot[i][j] ~= 0 and slot[i][j] ~= nil then
+				decmeta(slot[x][y])
+			end
+		end
+	end
+end
+
+function craftCheck(slots)
+	for i = 1, #recipes do
+		if recipes[i]:check(slots) then
+			return recipes[i]
+		end
+	end
+end
+
+function convertItem(item)
+	if type(item) == "table" then
+		item = item[1]
+	end
+	if item == 0 or item == nil then
+		return Block_air
+	end
+	return item
+end
+
+recipes = {}
+Recipe({{7,0,0},{0,0,0}},{12,4},false)
+Recipe({{12,0,0},{12,0,0}},{52,4},false)
+Recipe({{53,0,0},{52,0,0}},{15,4},false)
+Recipe({{12,12,0},{12,12,0}},{21,1},false)
+Recipe({{12,12,12},{12,0,12},{12,12,12}},{200,1},true)
+Recipe({{11,11,11},{11,0,11},{11,11,11}},{100,1},true)
+Recipe({{26,26,26},{12,12,12}},{60,1},true)
+Recipe({{52,0,52},{52,52,52},{52,0,52}},{5,3},true)
+Recipe({{12,12,0},{12,12,0},{12,12,0}},{57,3},true)
+Recipe({{48,48,0},{48,48,0},{0,0,0}},{49,1},false)
+Recipe({{3,3,0},{3,3,0},{0,0,0}},{1001,4},false)
+Recipe({{1001,1101,0},{0,0,0},{0,0,0}},{1002,1},false)
+Recipe({{54,54,54},{54,54,54},{0,0,0}},{1004,3},true)
+Recipe({{0,0,1001},{0,1001,1001},{1001,1001,1001}},{1103,4},true)
+Recipe({{83,83,83},{0,0,0},{0,0,0}},{84,1},true)
+Recipe({{81,10,81},{10,81,10},{81,10,81}},{28,1},true)
+Recipe({{85,54,0},{0,0,0},{0,0,0}},{91,100},false)
+Recipe({{85,0,0},{52,0,0},{94,0,0}},{93,4},true)
+Recipe({{0,52,97},{52,0,97},{0,52,97}},{92,385},true)
+Recipe({{95,0,0},{0,0,0},{0,0,0}},{96,3},false)
+Recipe({{0,0,11},{0,11,11},{11,11,11}},{43,4},true)
+Recipe({{0,0,12},{0,12,12},{12,12,12}},{44,4},true)
+Recipe({{97,97,0},{97,97,0},{0,0,0}},{26,1},false)
+Recipe({{54,0,54},{0,54,0},{0,0,0}},{401,1},true)
+Recipe({{0,0,52},{0,52,97},{52,0,97}},{98,65},true)
+
+--Pickaxes
+Recipe({{12,12,12},{0,52,0},{0,52,0}},{61,60},true)
+Recipe({{11,11,11},{0,52,0},{0,52,0}},{62,132},true)
+Recipe({{54,54,54},{0,52,0},{0,52,0}},{63,251},true)
+Recipe({{55,55,55},{0,52,0},{0,52,0}},{64,1562},true)
+Recipe({{56,56,56},{0,52,0},{0,52,0}},{65,33},true)
+--Shovels
+Recipe({{0,12,0},{0,52,0},{0,52,0}},{66,60},true)
+Recipe({{0,11,0},{0,52,0},{0,52,0}},{67,132},true)
+Recipe({{0,54,0},{0,52,0},{0,52,0}},{68,251},true)
+Recipe({{0,55,0},{0,52,0},{0,52,0}},{69,1562},true)
+Recipe({{0,56,0},{0,52,0},{0,52,0}},{70,33},true)
+--Axes
+Recipe({{12,12,0},{12,52,0},{0,52,0}},{71,60},true)
+Recipe({{11,11,0},{11,52,0},{0,52,0}},{72,132},true)
+Recipe({{54,54,0},{54,52,0},{0,52,0}},{73,251},true)
+Recipe({{55,55,0},{55,52,0},{0,52,0}},{74,1562},true)
+Recipe({{56,56,0},{56,52,0},{0,52,0}},{75,33},true)
+--Swords
+Recipe({{0,12,0},{0,12,0},{0,52,0}},{76,60},true)
+Recipe({{0,11,0},{0,11,0},{0,52,0}},{77,132},true)
+Recipe({{0,54,0},{0,54,0},{0,52,0}},{78,251},true)
+Recipe({{0,55,0},{0,55,0},{0,52,0}},{79,1562},true)
+Recipe({{0,56,0},{0,56,0},{0,52,0}},{80,33},true)
+--Hoes
+Recipe({{12,12,0},{0,52,0},{0,52,0}},{81,60},true)
+Recipe({{11,11,0},{0,52,0},{0,52,0}},{82,132},true)
+Recipe({{54,54,0},{0,52,0},{0,52,0}},{83,251},true)
+Recipe({{55,55,0},{0,52,0},{0,52,0}},{84,1562},true)
+Recipe({{56,56,0},{0,52,0},{0,52,0}},{85,33},true)
+
+function Armor:createRecipe()
+	local item = self.material.ID
+	local craft
+	if self.armorpart == 1 then
+		craft = {{item,item.item},{item,0,item},{0,0,0}}
+	elseif self.armorpart == 2 then
+		craft = {{item,0,item},{item,item,item},{item,item,item}}
+	elseif self.armorpart == 3 then
+		craft = {{item,item,item},{item,0,item},{item,0,item}}
+	elseif self.armorpart == 4 then
+		craft = {{0,0,0},{item,0,item},{item,0,item}}
+	end
+	return Recipe(craft, {self.id, self.maxHealth}, true)
+end
+
+Item_leather_cap:createRecipe()
+Item_leather_tunic:createRecipe()
+Item_leather_pants:createRecipe()
+Item_leather_boots:createRecipe()
+Item_iron_helmet:createRecipe()
+Item_iron_chestplate:createRecipe()
+Item_iron_leggins:createRecipe()
+Item_iron_boots:createRecipe()
+Item_diamond_helmet:createRecipe()
+Item_diamond_chestplate:createRecipe()
+Item_diamond_leggins:createRecipe()
+Item_diamond_boots:createRecipe()
+Item_gold_helmet:createRecipe()
+Item_gold_chestplate:createRecipe()
+Item_gold_leggins:createRecipe()
+Item_gold_boots:createRecipe()
+
+recipeList = nil
+toolpalette.register({})
+function createCraftingMenu() return {} end
+function setMenuState() end
+function enableAdvancedCrafting() end
+
+function gameMain:tabKey()
+	if not gameCraft.active then
+		if world[selblock[1]][selblock[2]] == Block_crafting_table then
+			addScreen(gameCraft, true)
+		else
+			addScreen(gameCraft, false)
+		end
+	end
+end
+function Block_crafting_table:use()
+	if not gameCraft.active then
+		addScreen(gameCraft, true)
+	end
+end
+gameCraft = Screen()
+function gameCraft:onLoad(craft)
+	self.slots = Slots()
+	for i = 1,9 do
+		self.slots.s[i+3][9] = {inventory, i}
+	end
+	for i = 0, 26 do
+		local ii = i + 9
+		self.slots.s[ii%9+4][math.floor(ii/9)+4} = {inventory, ii + 1}
+	end
+	self.craft = {}
+	for x = 1, 3 do
+		self.craft[x] = {}
+		for y = 1, 3 do
+			self.craft[x][y] = {Block_air, 0}
+		end
+	end
+	local s = craft and 3 or 2
+	for x = 1, s do
+		for y = 1, s do
+			self.slots.s[x + 7][y + 1] = {self.craft[y], x}
+		end
+	end
+	self.slots.offset = {7,10}
+	self.product = {{Block_air, 0}}
+	self.slots.s[12][3] = {self.product, 1}
+	self.slots:bindEvents(self)
+	function self:mousedown()
+		self.slots:mouseDown()
+		if self.slots.sel then
+			if inRect(self.slots.sel, {8,2,5,5}) or (self.slots.sel[1] == 12 and self.slots.sel[2] == 3 then
+				local recipe = {{0,0,0},{0,0,0},{0,0,0}}
+				for y = 1, 3 do
+					for x = 1, 3 do
+						recipe[y][x] = (self.craft[y][x] or 0)
+					end
+				end
+				local R = craftCheck(recipe)
+				if R then
+					self.product[1][1] = IDList[R.product[1]]
+					self.product[1][2] = R.product[2]
+				end
+				if self.slots.sel[1] ==12 and self.slots.sel[2] == 3 then
+					for x = 1, 3 do
+						for y = 1, 3 do
+							decMeta(self.craft[x][y]
+						end
+					end
+				end
+			end
+		end
+	end
+end
+fucntion gameCraft:paint(gc)
+	draw3dFrame(gc, 60, 10, WW-120, WH-20
+	draw3dString(gc, "Crafting", 77, 15)
+	draw3dString(gc, "Inventory", 77, 86)
+	gc:setFont("sanssreif", "r", 20)
+	draw3dString(gc,"->", 180, 88, 1, 0, 0, 0) -- coords and string are incorrect, dont have valid unicode, also dont know actual position... sry to whoever sees this :3
+	self.slots:paint(gc)
+end
+function gameCraft:escapeKey()
+	removeScreen(self)
+	timer.start(0.1)
+end
+
