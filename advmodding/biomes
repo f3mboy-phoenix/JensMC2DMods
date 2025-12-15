@@ -9,19 +9,19 @@ Biomes = {
 
 --normal default world, fixed adding height and deepslate, and other improvements (I think)
 Biomes.overworld[1] = {
-	genetate = function(self, structures)
+	generate = function(self, structures)
 		local floor, max, min, rnd, abs, ceil, editLight = math.floor, math.max, math.min, math.random, math.abs, math.ceil, editLight
 		local minx, maxx = self.minx, self.maxx
 		local gendir = sign(maxx)
 		local worldHeight = {}
 		local v, a
 		if self.ID==0 then
-			worldHeigth.right.v = 0
-			worldHeigth.right.a = rnd(-20, 20)
-			worldHeight.right.height = rnd(55, 90) -- no clue how close this is... went off of sea level to guess
-			worldHeight.left.v = 0
-			worldHeight.left.a = -worldHeight.right.a
-			worldHeight.left.height = world.right.height
+			worldEnd.right.v = 0
+			worldEnd.right.a = rnd(-20, 20)
+			worldEnd.right.height = rnd(55, 90) -- no clue how close this is... went off of sea level to guess
+			worldEnd.left.v = 0
+			worldEnd.left.a = -worldEnd.right.a
+			worldEnd.left.height = worldEnd.right.height
 		end
 		local startx, endx, step
 		if gendir > 0 then
@@ -101,7 +101,7 @@ Biomes.overworld[1] = {
 				GenerateOres("overworld", x, y)
 			end
 		end
-		for i = 1, math.ceil(self.size/15)
+		for i = 1, math.ceil(self.size/15) do
 			local dx = rnd(2, self.size-10)
 			local x = (gendir > 0 and minx or maxx) + dx * gendir
 			local y = rnd(-64, worldHeight[x] - 15)

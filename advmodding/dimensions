@@ -4,7 +4,7 @@ function enterDimensions(dim)
 			chunk:store("save"..currentSaveSlot..".c"..Dimension:sub(1,1), true)
 		end
 		Dimension = dim
-		Dimension[dim].load and pcall(Dimensions[dim].load, Dimensions[dim])
+		Dimensions[dim].load and pcall(Dimensions[dim].load, Dimensions[dim])
 		for i = -1, 1 do
 			local loadingChunk = chunk(i, chunkSize, Dimension)
 			if not loadingChunk:load('save'.. currentSaveSlot..".c"..dim:sub(1,1)) then
@@ -33,23 +33,23 @@ function saveInSlot(slotNr, returnscreen, unload)
 			if head then
 				var.store("save"..tostring(slotNr)..".h", head)
 				var.store("save"..tostring(slotNr)..".b", body)
-				for i, chunk in ipairs(activeChunk) do
+				for i, chunk in ipairs(activeChunks) do
 					chunk:store("save"..tostring(slotNr)..".c"..chunk.dimension, unload)
 				end
-				saveFns(slotNr) --seperate function that should be inline but this code was in a notebook, code is from a later addition...
+				saveFns(slotNr) --separate function that should be inline but this code was in a notebook, code is from a later addition...
 				document.markChanged()
 				setScreen(returnScreen)
 			else
 				setScreen(returnScreen)
-				addScreen(message, {"Error", "There was an error while saving...", "Unexpected error: Header string missing!", "Why this happens is unknown", "You can try again. also your last save", "before this is still compleatly unaffected"})
+				addScreen(message, {"Error", "There was an error while saving...", "Unexpected error: Header string missing!", "Why this happens is unknown", "You can try again. also your last save", "before this is still completely unaffected"})
 			end
 		else
 			setScreen(returnScreen)
-			addScreen(message, {"Unknown Error", "There was an unexpected error.", "Error in line: "..err:split("]")[2]:split(":")[2],"Your last save before this one", "is compleatly unaffected"}) --typo?
+			addScreen(message, {"Unknown Error", "There was an unexpected error.", "Error in line: "..err:split("]")[2]:split(":")[2],"Your last save before this one", "is completely unaffected"}) --typo?
 		end
 		invalidateScreen()
 	end
-	setScreen(waitScreen, "Saving...", action)
+	setScreen(WaitScreen, "Saving...", action)
 end
 
 function loadChunks()
@@ -61,7 +61,7 @@ function loadChunks()
 	end
 	for ID = playerChunk-1, playerChunk + 1 do
 		if not activeChunks[ID] then
-			local loading = chunk(ID, chunkSize, Dim)
+			local loading = chunk(ID, chunkSize, Dimension)
 			if not loading:load("save"..currentSaveSlot..".c"..Dimension:sub(1,1)) then
 				loading:generate()
 			end
